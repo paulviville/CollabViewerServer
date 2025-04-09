@@ -5,19 +5,20 @@ export default class ClientsManager {
     #clientsMap = new Map();
     #clients = new AttributeContainer()
     #clientId = this.#clients.addAttribute("clientId");
+    #clientSocket = this.#clients.addAttribute("clientSocket");
     #clientViewMatrix = this.#clients.addAttribute("clientViewMatrix");
-    // #clientSocket = this.#clients.addAttribute("clientSocket");
 
     constructor ( ) {
         console.log(`ClientsManager - constructor`);
 
     }
 
-    addClient ( clientId ) {
-        console.log(`ClientsManager - addClient (${clientId})`);
+    addClient ( clientId, socket ) {
+        console.log(`ClientsManager - addClient (${clientId, socket})`);
         const client = this.#clients.newElement();
         this.#clients.ref(client);
         this.#clientId[client] = clientId;
+        this.#clientSocket[client] = socket;
         this.#clientViewMatrix[client] = new Matrix4();
 
         this.#clientsMap.set(this.#clientId[client], client);
@@ -41,4 +42,33 @@ export default class ClientsManager {
         const client = this.getClient(clientId);
         this.#clientViewMatrix[client].copy(viewMatrix);
     }
+
+	*#clientsIterator ( ) {
+		for( const client of this.#clients.elements() ) {
+			yield this.#clientId[client];
+		}
+	}
+
+	*#clientsDataIterator ( ) {
+		for( const client of this.#clients.elements() ) {
+			yield {
+				clientId: this.#clientId[client],
+				socket: this.#clientSocket[client],
+			};
+		}
+	}
+
+
+	get clientIds ( ) {
+		return [...this.#clientsIterator()];	
+	}
+
+	get clients ( ) {
+		return [...this.#clientsDataIterator()];
+	}
+
+	getSocket ( clientId ) {
+        const client = this.getClient(clientId);
+		return this.#clientSocket[client]
+	}
 }

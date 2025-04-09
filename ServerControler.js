@@ -41,20 +41,21 @@ export default class Server {
         console.log(`Server - #onSocketConnection`);
 
         const clientId = this.#connectClient(socket);
-        this.#clientsManager.addClient(clientId);
+        this.#clientsManager.addClient(clientId, socket);
         
         socket.on('message', ( message ) => {
-            this.#onClientMessage(socket, message);
+            this.#onClientMessage(clientId, message);
         });
     
         socket.on('close', ( ) => {
             this.#onSocketClose(clientId);
         });
+		this.#broadcastMessage("test", clientId)
 	}
 
 	#onSocketClose ( clientId ) {
         console.log(`Server - #onSocketClose (${clientId})`);
-        delete this.#clients[clientId]
+        delete this.#clients[clientId];
 
         const removePlayerBuffer = new Float32Array([SERVER_ID, REMOVE_PLAYER, clientId]);
         for(const client in this.#clients) {
@@ -65,12 +66,8 @@ export default class Server {
         this.#clientsManager.removeClient(clientId);
 	}
 
-	#onClientMessage ( socket, message ) {
-        this.#server.clients.forEach(( client ) => {
-            if (client !== socket && client.readyState === WebSocket.OPEN) { 
-                client.send(message);
-            }
-        });
+	#onClientMessage ( clientId, message ) {
+		this.#broadcastMessage(message, clientId)
 	}
 
 
@@ -78,32 +75,38 @@ export default class Server {
         console.log(`Server - #connectClient`);
 
         const clientId = this.#newId();
-        // console.log(`New client connected. Id: ${clientId}`);
     
         const newPlayerBuffer = new Float32Array([SERVER_ID, NEW_PLAYER, clientId]);
         const setPlayerBuffer = new Float32Array([SERVER_ID, SET_PLAYER, clientId]);
 
         socket.send(newPlayerBuffer.buffer);
-        for(const client in this.#clients) {
+        for( const client in this.#clients ) {
             console.log(client)
             socket.send(new Float32Array([SERVER_ID, NEW_PLAYER, client]));
             this.#clients[client].send(newPlayerBuffer.buffer);
         }
         this.#clients[clientId] = socket;
-
         return clientId;
 	}
 
-	#disconnectClient ( client ) {
+	// #disconnectClient ( client ) {
 
-	}
+	// }
 
-	#broadcastMessage ( message ) {
+	#broadcastMessage ( message, excluded = undefined ) {
+        // console.log(`Server - #broadcastMessage`);
+		for( const {clientId, socket} of this.#clientsManager.clients ) {
+			if( excluded != undefined && clientId == excluded ) {
+				continue;
+			}
 
+			this.#sendMessage(socket, message);
+		}
 	}
 
 	#sendMessage ( socket, message ) {
-        // socket
+        // console.log(`Server - #sendMessage`);
+		socket.send(message);
 	}
 
     #newId ( ) {
