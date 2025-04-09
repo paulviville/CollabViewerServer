@@ -5,6 +5,9 @@ import SceneDescriptor from "./Synchronizer/SceneDescriptor.js";
 const server = new WebSocketServer({ port: 8080 });
 /// Buffer : [Sender, Command, Data...]
 
+const sceneDescriptor = new SceneDescriptor();
+
+
 const clients = [];
 const SERVER_ID = 0;
 
@@ -53,3 +56,53 @@ server.on('connection', (socket) => {
 });
 
 console.log('WebSocket server is running on ws://localhost:8080');
+
+class Server {
+	#port;
+	#server;
+	#clients = [];
+
+	// #monitoringClient;
+
+	constructor ( port = 8080 ) {
+		this.#port = port;
+
+		this.#initializeSocket();
+	}
+
+	#initializeSocket ( ) {
+		this.#server = new WebSocketServer({ port: this.#port });
+
+
+	}
+
+	#onSocketConnection ( socket ) {
+
+	}
+
+	#onSocketClose ( ) {
+
+	}
+
+	#onClientMessage ( message ) {
+
+	}
+
+
+	#connectClient ( client ) {
+
+	}
+
+	#disconnectClient ( client ) {
+
+	}
+
+	#broadcastMessage ( message ) {
+
+	}
+
+	#sendMessage ( socket, message ) {
+
+	}
+
+}
