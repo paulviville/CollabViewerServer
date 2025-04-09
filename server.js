@@ -1,4 +1,4 @@
-import Server from "./Server.js";
+import Server from "./ServerControler.js";
 
 // const server = new WebSocketServer({ port: 8080 });
 
