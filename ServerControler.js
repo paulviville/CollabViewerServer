@@ -5,6 +5,17 @@ import { WebSocketServer, WebSocket } from "ws";
 /// Buffer : [Sender, Command, Data...]
 
 
+let commandNumber = 0;
+
+class CommandTypes {
+    static NEW_PLAYER = commandNumber++;
+    static SET_PLAYER = commandNumber++;
+    static REMOVE_PLAYER = commandNumber++;
+    static UPDATE_CAMERA = commandNumber++;
+    static UPDATE_POINTER = commandNumber++;
+}
+
+
 const clients = [];
 const SERVER_ID = 0;
 
@@ -50,14 +61,13 @@ export default class Server {
         socket.on('close', ( ) => {
             this.#onSocketClose(clientId);
         });
-		this.#broadcastMessage("test", clientId)
 	}
 
 	#onSocketClose ( clientId ) {
         console.log(`Server - #onSocketClose (${clientId})`);
         delete this.#clients[clientId];
 
-        const removePlayerBuffer = new Float32Array([SERVER_ID, REMOVE_PLAYER, clientId]);
+        const removePlayerBuffer = new Float32Array([SERVER_ID, CommandTypes.REMOVE_PLAYER, clientId]);
         for(const client in this.#clients) {
             console.log(client);
             this.#clients[client].send(removePlayerBuffer.buffer);
@@ -76,13 +86,13 @@ export default class Server {
 
         const clientId = this.#newId();
     
-        const newPlayerBuffer = new Float32Array([SERVER_ID, NEW_PLAYER, clientId]);
-        const setPlayerBuffer = new Float32Array([SERVER_ID, SET_PLAYER, clientId]);
+        const newPlayerBuffer = new Float32Array([SERVER_ID, CommandTypes.NEW_PLAYER, clientId]);
+        const setPlayerBuffer = new Float32Array([SERVER_ID, CommandTypes.SET_PLAYER, clientId]);
 
-        socket.send(newPlayerBuffer.buffer);
+        socket.send(setPlayerBuffer.buffer);
         for( const client in this.#clients ) {
             console.log(client)
-            socket.send(new Float32Array([SERVER_ID, NEW_PLAYER, client]));
+            socket.send(new Float32Array([SERVER_ID, CommandTypes.NEW_PLAYER, client]));
             this.#clients[client].send(newPlayerBuffer.buffer);
         }
         this.#clients[clientId] = socket;
